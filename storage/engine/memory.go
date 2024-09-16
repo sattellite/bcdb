@@ -12,14 +12,16 @@ var (
 	ErrInternal = errors.New("internal error")
 )
 
-func NewMemory(l *slog.Logger) *Memory {
+func NewMemory(l *slog.Logger, done chan struct{}) *Memory {
 	return &Memory{
+		done:   done,
 		store:  make(map[string]any),
 		logger: l.With("engine", "memory"),
 	}
 }
 
 type Memory struct {
+	done   chan struct{}
 	store  map[string]any
 	logger *slog.Logger
 }
@@ -106,4 +108,13 @@ func (m *Memory) defferedLog(method, key string, start time.Time, err error) err
 	}
 	m.logger.Debug(method, slog.String("key", key), slog.Duration("elapsed", time.Since(start)))
 	return nil
+}
+
+func (m *Memory) Done() <-chan struct{} {
+	return m.done
+}
+
+func (m *Memory) Close(_ context.Context) {
+	m.logger.Info("closing")
+	m.done <- struct{}{}
 }
