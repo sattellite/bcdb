@@ -60,3 +60,36 @@ func TestMemory_ContextCancellation(t *testing.T) {
 	err = mem.Del(ctx, key)
 	assert.Error(t, err, "Del should have failed due to context cancellation")
 }
+
+func TestMemory_SetEmptyKey(t *testing.T) {
+	ctx := context.Background()
+	done := make(chan struct{})
+	defer close(done)
+	mem := NewMemory(noopLogger, done)
+
+	err := mem.Set(ctx, "", "value")
+	assert.Error(t, err, "Set should fail for empty key")
+	assert.Equal(t, ErrEmptyKey, err, "Set should return ErrEmptyKey for empty key")
+}
+
+func TestMemory_GetEmptyKey(t *testing.T) {
+	ctx := context.Background()
+	done := make(chan struct{})
+	defer close(done)
+	mem := NewMemory(noopLogger, done)
+
+	_, err := mem.Get(ctx, "")
+	assert.Error(t, err, "Get should fail for empty key")
+	assert.Equal(t, ErrEmptyKey, err, "Get should return ErrEmptyKey for empty key")
+}
+
+func TestMemory_DelEmptyKey(t *testing.T) {
+	ctx := context.Background()
+	done := make(chan struct{})
+	defer close(done)
+	mem := NewMemory(noopLogger, done)
+
+	err := mem.Del(ctx, "")
+	assert.Error(t, err, "Del should fail for empty key")
+	assert.Equal(t, ErrEmptyKey, err, "Del should return ErrEmptyKey for empty key")
+}

@@ -118,4 +118,5 @@ func (m *Memory) Done() <-chan struct{} {
 func (m *Memory) Close(_ context.Context) {
 	m.logger.Info("closing")
 	m.done <- struct{}{}
+	close(m.done)
 }

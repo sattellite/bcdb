@@ -2,6 +2,7 @@ package repl
 
 import (
 	"context"
+	"github.com/sattellite/bcdb/storage/engine"
 	"testing"
 
 	"github.com/sattellite/bcdb/compute/command"
@@ -53,6 +54,33 @@ func TestHandle(t *testing.T) {
 			name:        "Handle unknown command",
 			query:       query.New(command.Method(-1), "key"),
 			setupMock:   func(m *storage.Engine) {},
+			expectedRes: result.Result{},
+			expectError: true,
+		},
+		{
+			name:  "Handle SET command failure",
+			query: query.New(command.MethodSet, "", ""),
+			setupMock: func(m *storage.Engine) {
+				m.On("Set", mock.Anything, "", "").Return(engine.ErrEmptyKey)
+			},
+			expectedRes: result.Result{},
+			expectError: true,
+		},
+		{
+			name:  "Handle GET command failure",
+			query: query.New(command.MethodGet, ""),
+			setupMock: func(m *storage.Engine) {
+				m.On("Get", mock.Anything, "").Return("", engine.ErrEmptyKey)
+			},
+			expectedRes: result.Result{},
+			expectError: true,
+		},
+		{
+			name:  "Handle DEL command failure",
+			query: query.New(command.MethodDel, ""),
+			setupMock: func(m *storage.Engine) {
+				m.On("Del", mock.Anything, "").Return(engine.ErrEmptyKey)
+			},
 			expectedRes: result.Result{},
 			expectError: true,
 		},
