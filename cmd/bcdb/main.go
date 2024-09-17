@@ -32,7 +32,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// create storage engine
-	eng := storage.NewEngine(ctx, storage.EngineTypeMemory)
+	eng, engineErr := storage.NewEngine(ctx, storage.EngineTypeMemory)
+	if engineErr != nil {
+		log.Error("failed to create storage engine", slog.Any("error", engineErr))
+		cancel()
+		return
+	}
 	// create computer for user requests
 	comp := compute.New(eng)
 	go comp.Run(ctx)

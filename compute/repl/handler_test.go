@@ -2,12 +2,12 @@ package repl
 
 import (
 	"context"
-	"github.com/sattellite/bcdb/storage/engine"
 	"testing"
 
 	"github.com/sattellite/bcdb/compute/command"
 	"github.com/sattellite/bcdb/compute/query"
 	"github.com/sattellite/bcdb/compute/result"
+	"github.com/sattellite/bcdb/storage/engine"
 	storage "github.com/sattellite/bcdb/storage/mocks"
 
 	"github.com/stretchr/testify/assert"

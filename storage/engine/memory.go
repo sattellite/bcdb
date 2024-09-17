@@ -13,12 +13,20 @@ var (
 	ErrNotFound = errors.New("not found")
 )
 
-func NewMemory(l *slog.Logger, done chan struct{}) *Memory {
+func NewMemory(l *slog.Logger, done chan struct{}) (*Memory, error) {
+	if l == nil {
+		return nil, errors.New("logger is required")
+	}
+
+	if done == nil {
+		return nil, errors.New("done channel is required")
+	}
+
 	return &Memory{
 		done:   done,
 		store:  make(map[string]any),
 		logger: l.With("engine", "memory"),
-	}
+	}, nil
 }
 
 type Memory struct {
@@ -117,6 +125,13 @@ func (m *Memory) Done() <-chan struct{} {
 
 func (m *Memory) Close(_ context.Context) {
 	m.logger.Info("closing")
-	m.done <- struct{}{}
-	close(m.done)
+	select {
+	case _, ok := <-m.done:
+		if ok {
+			m.done <- struct{}{}
+			close(m.done)
+		}
+	default:
+		m.logger.Warn("already closed")
+	}
 }

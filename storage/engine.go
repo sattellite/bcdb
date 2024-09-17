@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/sattellite/bcdb/logger"
-
 	"github.com/sattellite/bcdb/storage/engine"
 )
 
@@ -33,17 +32,22 @@ type Engine interface {
 	Close(ctx context.Context)
 }
 
-func NewEngine(ctx context.Context, t EngineType) Engine {
+func NewEngine(ctx context.Context, t EngineType) (Engine, error) {
 	l := logger.WithScope("storage")
 	l.Info("creating storage engine", slog.String("type", t.String()))
 	var eng Engine
+	var err error
 	done := make(chan struct{})
 	if t == EngineTypeMemory {
-		eng = engine.NewMemory(l, done)
+		eng, err = engine.NewMemory(l, done)
+	}
+	if err != nil {
+		l.Error("failed to create storage engine", slog.Any("error", err))
+		return nil, err
 	}
 
 	go stopEngine(ctx, eng)
-	return eng
+	return eng, nil
 }
 
 func stopEngine(ctx context.Context, eng Engine) {

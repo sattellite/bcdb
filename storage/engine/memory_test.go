@@ -17,7 +17,7 @@ func TestMemory_SetGetDel(t *testing.T) {
 	ctx := context.Background()
 	done := make(chan struct{})
 	defer close(done)
-	mem := NewMemory(noopLogger, done)
+	mem, _ := NewMemory(noopLogger, done)
 
 	// Test Set and Get
 	key := "testKey"
@@ -42,7 +42,7 @@ func TestMemory_SetGetDel(t *testing.T) {
 func TestMemory_ContextCancellation(t *testing.T) {
 	done := make(chan struct{})
 	defer close(done)
-	mem := NewMemory(noopLogger, done)
+	mem, _ := NewMemory(noopLogger, done)
 	key := "testKey"
 	value := []byte("testValue")
 
@@ -65,7 +65,7 @@ func TestMemory_SetEmptyKey(t *testing.T) {
 	ctx := context.Background()
 	done := make(chan struct{})
 	defer close(done)
-	mem := NewMemory(noopLogger, done)
+	mem, _ := NewMemory(noopLogger, done)
 
 	err := mem.Set(ctx, "", "value")
 	assert.Error(t, err, "Set should fail for empty key")
@@ -76,7 +76,7 @@ func TestMemory_GetEmptyKey(t *testing.T) {
 	ctx := context.Background()
 	done := make(chan struct{})
 	defer close(done)
-	mem := NewMemory(noopLogger, done)
+	mem, _ := NewMemory(noopLogger, done)
 
 	_, err := mem.Get(ctx, "")
 	assert.Error(t, err, "Get should fail for empty key")
@@ -87,9 +87,68 @@ func TestMemory_DelEmptyKey(t *testing.T) {
 	ctx := context.Background()
 	done := make(chan struct{})
 	defer close(done)
-	mem := NewMemory(noopLogger, done)
+	mem, _ := NewMemory(noopLogger, done)
 
 	err := mem.Del(ctx, "")
 	assert.Error(t, err, "Del should fail for empty key")
 	assert.Equal(t, ErrEmptyKey, err, "Del should return ErrEmptyKey for empty key")
+}
+
+func TestMemory_DoneClose(t *testing.T) {
+	done := make(chan struct{})
+	mem, _ := NewMemory(noopLogger, done)
+
+	select {
+	case _, ok := <-mem.Done():
+		assert.True(t, ok, "Done channel should be opened")
+	default:
+	}
+
+	go func() {
+		<-mem.Done()
+	}()
+
+	ctx := context.Background()
+	mem.Close(ctx)
+
+	select {
+	case _, ok := <-mem.Done():
+		assert.False(t, ok, "Done channel should be closed")
+	default:
+	}
+
+	// close again
+	mem.Close(ctx)
+
+	select {
+	case _, ok := <-mem.Done():
+		assert.False(t, ok, "Done channel should be closed")
+	default:
+	}
+}
+
+func TestNewMemoryInitialization(t *testing.T) {
+	tests := []struct {
+		name    string
+		logger  *slog.Logger
+		done    chan struct{}
+		wantErr bool
+	}{
+		{"ValidLoggerAndDoneChannel", noopLogger, make(chan struct{}), false},
+		{"NilLogger", nil, make(chan struct{}), true},
+		{"NilDoneChannel", noopLogger, nil, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mem, err := NewMemory(tt.logger, tt.done)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, mem)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, mem)
+			}
+		})
+	}
 }
