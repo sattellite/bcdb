@@ -26,17 +26,17 @@ func TestMemory_SetGetDel(t *testing.T) {
 	sErr := mem.Set(ctx, key, value)
 	require.NoError(t, sErr, "Set failed")
 
-	got, gErr := mem.Get(ctx, key)
+	got1, gErr := mem.Get(ctx, key)
 	require.NoError(t, gErr, "Get failed")
-	assert.Equal(t, value, got, "Get returned wrong value")
+	assert.Equal(t, value, got1, "Get returned wrong value")
 
 	// Test Del
 	dErr := mem.Del(ctx, key)
 	require.NoError(t, dErr, "Del failed")
 
-	got, gdErr := mem.Get(ctx, key)
-	require.NoError(t, gdErr, "Get after Del failed")
-	assert.Nil(t, got, "Get after Del returned non-nil value")
+	got2, gdErr := mem.Get(ctx, key)
+	require.Error(t, gdErr, "Get after Del failed")
+	assert.Nil(t, got2, "Get after Del returned non-nil value")
 }
 
 func TestMemory_ContextCancellation(t *testing.T) {

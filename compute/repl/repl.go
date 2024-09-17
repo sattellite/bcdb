@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/sattellite/bcdb/compute/result"
-
 	"github.com/sattellite/bcdb/storage"
 )
 
@@ -20,7 +19,6 @@ func New(logger *slog.Logger, engine storage.Engine) *REPL {
 		in:     make(chan string),
 		out:    log.New(os.Stdout, "", 0).Writer(),
 	}
-
 }
 
 type REPL struct {

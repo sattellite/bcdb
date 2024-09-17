@@ -8,13 +8,11 @@ import (
 	"github.com/sattellite/bcdb/compute/query"
 )
 
-var (
-	ErrInvalidQuery = errors.New("invalid query")
-)
+var ErrInvalidQuery = errors.New("invalid query")
 
 func (r *REPL) Parse(input string) (*query.Query, error) {
 	parts := strings.Split(input, " ")
-	if len(parts) == 0 {
+	if len(parts) < 2 {
 		return nil, ErrInvalidQuery
 	}
 

@@ -16,13 +16,14 @@ func TestParse(t *testing.T) {
 		expectedMethod command.Method
 		expectedArgs   []string
 		expectError    bool
+		wantedError    error
 	}{
 		{name: "Valid SET command", input: "SET key value", expectedMethod: command.MethodSet, expectedArgs: []string{"key", "value"}, expectError: false},
 		{name: "Valid GET command", input: "GET key", expectedMethod: command.MethodGet, expectedArgs: []string{"key"}, expectError: false},
-		{name: "Invalid command", input: "INVALID key", expectError: true},
-		{name: "Empty input", input: "", expectError: true},
-		{name: "SET command with missing arguments", input: "SET key", expectError: true},
-		{name: "GET command with extra arguments", input: "GET key extra", expectError: true},
+		{name: "Invalid command", input: "INVALID key", expectError: true, wantedError: command.ErrInvalidCommand},
+		{name: "Empty input", input: "", expectError: true, wantedError: ErrInvalidQuery},
+		{name: "SET command with missing arguments", input: "SET key", expectError: true, wantedError: command.ErrInvalidArguments},
+		{name: "GET command with extra arguments", input: "GET key extra", expectError: true, wantedError: command.ErrInvalidArguments},
 	}
 
 	for _, tt := range tests {
@@ -32,6 +33,7 @@ func TestParse(t *testing.T) {
 			if tt.expectError {
 				require.Error(t, err)
 				assert.Nil(t, q)
+				assert.ErrorIs(t, err, tt.wantedError)
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, q)
@@ -40,8 +42,4 @@ func TestParse(t *testing.T) {
 			}
 		})
 	}
-}
-
-func methodRef(m command.Method) *command.Method {
-	return &m
 }

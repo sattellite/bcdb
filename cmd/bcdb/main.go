@@ -41,7 +41,6 @@ func main() {
 	wait := make(chan os.Signal, 1)
 	signal.Notify(
 		wait,
-		syscall.SIGKILL,
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT,

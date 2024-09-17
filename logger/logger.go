@@ -13,6 +13,7 @@ import (
 )
 
 var l = slog.New(slog.NewTextHandler(os.Stdout, defaultOptions()))
+
 var defaultChanged atomic.Bool
 
 func defaultOptions() *slog.HandlerOptions {

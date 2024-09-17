@@ -10,6 +10,7 @@ import (
 var (
 	ErrEmptyKey = errors.New("empty key")
 	ErrInternal = errors.New("internal error")
+	ErrNotFound = errors.New("not found")
 )
 
 func NewMemory(l *slog.Logger, done chan struct{}) *Memory {
@@ -69,7 +70,7 @@ func (m *Memory) get(key string) (any, error) {
 
 	value, ok := m.store[key]
 	if !ok {
-		return nil, nil
+		return nil, ErrNotFound
 	}
 
 	return value, nil

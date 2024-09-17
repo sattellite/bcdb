@@ -18,8 +18,7 @@ const (
 )
 
 func (t *EngineType) String() string {
-	switch *t {
-	case EngineTypeMemory:
+	if *t == EngineTypeMemory {
 		return "memory"
 	}
 	return "unknown"
@@ -39,8 +38,7 @@ func NewEngine(ctx context.Context, t EngineType) Engine {
 	l.Info("creating storage engine", slog.String("type", t.String()))
 	var eng Engine
 	done := make(chan struct{})
-	switch t {
-	case EngineTypeMemory:
+	if t == EngineTypeMemory {
 		eng = engine.NewMemory(l, done)
 	}
 
@@ -53,7 +51,8 @@ func stopEngine(ctx context.Context, eng Engine) {
 	l := logger.WithScope("storage")
 	l.Info("stopping storage engine")
 	if eng != nil {
-		tctx, _ := context.WithTimeout(ctx, 5*time.Second)
+		tctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
 		eng.Close(tctx)
 		select {
 		case <-eng.Done():
