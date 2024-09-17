@@ -15,7 +15,9 @@ var noopLogger = slog.New(slog.NewTextHandler(io.Discard, nil))
 
 func TestMemory_SetGetDel(t *testing.T) {
 	ctx := context.Background()
-	mem := NewMemory(noopLogger)
+	done := make(chan struct{})
+	defer close(done)
+	mem := NewMemory(noopLogger, done)
 
 	// Test Set and Get
 	key := "testKey"
@@ -38,7 +40,9 @@ func TestMemory_SetGetDel(t *testing.T) {
 }
 
 func TestMemory_ContextCancellation(t *testing.T) {
-	mem := NewMemory(noopLogger)
+	done := make(chan struct{})
+	defer close(done)
+	mem := NewMemory(noopLogger, done)
 	key := "testKey"
 	value := []byte("testValue")
 

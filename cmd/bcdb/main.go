@@ -5,8 +5,9 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"runtime"
 	"syscall"
+
+	"github.com/sattellite/bcdb/compute"
 
 	"github.com/sattellite/bcdb/config"
 	"github.com/sattellite/bcdb/logger"
@@ -32,8 +33,9 @@ func main() {
 
 	// create storage engine
 	eng := storage.NewEngine(ctx, storage.EngineTypeMemory)
-
-	runtime.KeepAlive(eng)
+	// create computer for user requests
+	comp := compute.New(eng)
+	go comp.Run(ctx)
 
 	// wait for signals
 	wait := make(chan os.Signal, 1)

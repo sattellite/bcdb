@@ -12,3 +12,7 @@ tasks:
   test:
     cmds:
       - go test -race -v ./...
+  mocks:
+    cmds:
+      - mockery --version || go install github.com/vektra/mockery/v2@latest
+      - mockery

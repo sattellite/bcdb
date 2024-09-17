@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -58,7 +59,12 @@ func stopEngine(ctx context.Context, eng Engine) {
 		case <-eng.Done():
 			l.Info("storage engine stopped")
 		case <-tctx.Done():
-			l.Error("failed to stop storage engine", slog.Any("error", tctx.Err()))
+			err := tctx.Err()
+			if !errors.Is(err, context.Canceled) {
+				l.Error("failed to stop storage engine 1", slog.Any("error", tctx.Err()))
+				return
+			}
+			l.Info("storage engine stopped")
 		}
 	}
 }
