@@ -102,6 +102,10 @@ func (m *Memory) del(key string) error {
 		return ErrEmptyKey
 	}
 
+	if _, ok := m.store[key]; !ok {
+		return ErrNotFound
+	}
+
 	delete(m.store, key)
 	return nil
 }
