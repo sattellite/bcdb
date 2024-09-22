@@ -37,7 +37,7 @@ type Memory struct {
 
 func (m *Memory) Set(ctx context.Context, key string, value any) (err error) {
 	defer func(start time.Time) {
-		err = m.defferedLog("set", key, start, err)
+		err = m.deferredLog("set", key, start, err)
 	}(time.Now())
 	m.logger.Debug("set", slog.String("key", key), slog.Any("value", value))
 
@@ -60,7 +60,7 @@ func (m *Memory) set(key string, value any) error {
 
 func (m *Memory) Get(ctx context.Context, key string) (result any, err error) {
 	defer func(start time.Time) {
-		err = m.defferedLog("get", key, start, err)
+		err = m.deferredLog("get", key, start, err)
 	}(time.Now())
 
 	select {
@@ -86,7 +86,7 @@ func (m *Memory) get(key string) (any, error) {
 
 func (m *Memory) Del(ctx context.Context, key string) (err error) {
 	defer func(start time.Time) {
-		err = m.defferedLog("del", key, start, err)
+		err = m.deferredLog("del", key, start, err)
 	}(time.Now())
 
 	select {
@@ -106,7 +106,7 @@ func (m *Memory) del(key string) error {
 	return nil
 }
 
-func (m *Memory) defferedLog(method, key string, start time.Time, err error) error {
+func (m *Memory) deferredLog(method, key string, start time.Time, err error) error {
 	if rErr := recover(); rErr != nil {
 		m.logger.Error(method, slog.String("key", key), slog.Any("error", rErr), slog.Duration("elapsed", time.Since(start)))
 		return ErrInternal
