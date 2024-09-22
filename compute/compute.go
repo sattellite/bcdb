@@ -2,6 +2,7 @@ package compute
 
 import (
 	"context"
+	"io"
 
 	"github.com/sattellite/bcdb/compute/impl/repl"
 	"github.com/sattellite/bcdb/compute/query"
@@ -14,7 +15,7 @@ type Computer interface {
 	Run(ctx context.Context)
 	Parse(input string) (*query.Query, error)
 	Handle(ctx context.Context, q query.Query) (result.Result, error)
-	Print(r result.Result) error
+	Print(w io.Writer, r result.Result) error
 }
 
 func New(eng storage.Engine) Computer {

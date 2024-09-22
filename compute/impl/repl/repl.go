@@ -36,27 +36,27 @@ func (r *REPL) Run(ctx context.Context) {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
-	_ = r.prompt(prefixIn)
+	_ = r.prompt(r.out, prefixIn)
 	for scanner.Scan() && ctx.Err() == nil {
 		input := scanner.Text()
 		// process user input
 		q, pErr := r.Parse(input)
 		if pErr != nil {
 			r.logger.Error("failed to parse command", slog.Any("error", pErr))
-			_ = r.Print(result.Result{Value: pErr.Error()})
-			_ = r.prompt(prefixIn)
+			_ = r.Print(r.out, result.Result{Value: pErr.Error()})
+			_ = r.prompt(r.out, prefixIn)
 			continue
 		}
 		// handle user input
 		res, hErr := r.Handle(ctx, *q)
 		if hErr != nil {
 			r.logger.Error("failed to handle command", slog.Any("error", hErr))
-			_ = r.Print(result.Result{Value: hErr.Error()})
-			_ = r.prompt(prefixIn)
+			_ = r.Print(r.out, result.Result{Value: hErr.Error()})
+			_ = r.prompt(r.out, prefixIn)
 			continue
 		}
 		// write result to stdout
-		_ = r.Print(res)
-		_ = r.prompt(prefixIn)
+		_ = r.Print(r.out, res)
+		_ = r.prompt(r.out, prefixIn)
 	}
 }
