@@ -3,10 +3,9 @@ package compute
 import (
 	"context"
 
-	"github.com/sattellite/bcdb/compute/result"
-
+	"github.com/sattellite/bcdb/compute/impl/repl"
 	"github.com/sattellite/bcdb/compute/query"
-	"github.com/sattellite/bcdb/compute/repl"
+	"github.com/sattellite/bcdb/compute/result"
 	"github.com/sattellite/bcdb/logger"
 	"github.com/sattellite/bcdb/storage"
 )
