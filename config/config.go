@@ -1,10 +1,12 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
+	"strconv"
 
 	"github.com/cristalhq/aconfig"
 )
@@ -13,6 +15,12 @@ const project = "bcdb"
 
 type Config struct {
 	Debug bool
+
+	Server struct {
+		Address     string `default:"127.0.0.1"`
+		Port        string `default:"8080"`
+		Concurrency int    `default:"10"`
+	}
 }
 
 func Load() (*Config, error) {
@@ -56,5 +64,25 @@ func Load() (*Config, error) {
 		return nil, cfgErr
 	}
 
-	return &c, nil
+	return &c, c.validate()
+}
+
+func (c *Config) validate() error {
+	if c.Server.Port == "" {
+		return errors.New("server port is required")
+	} else {
+		port, err := strconv.ParseInt(c.Server.Port, 10, 64)
+		if err != nil {
+			return errors.New("server port must be a number")
+		}
+		if port < 1 || port > 65535 {
+			return errors.New("server port must be between 1 and 65535")
+		}
+	}
+
+	if c.Server.Concurrency < 1 {
+		return errors.New("server concurrency must be greater than 0")
+	}
+
+	return nil
 }
