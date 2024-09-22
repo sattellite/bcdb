@@ -17,9 +17,9 @@ type Config struct {
 	Debug bool
 
 	Server struct {
-		Address     string `default:"127.0.0.1"`
-		Port        string `default:"8080"`
-		Concurrency int    `default:"10"`
+		Address    string `default:"127.0.0.1"`
+		Port       string `default:"8080"`
+		MaxClients int    `default:"10"`
 	}
 }
 
@@ -80,8 +80,8 @@ func (c *Config) validate() error {
 		}
 	}
 
-	if c.Server.Concurrency < 1 {
-		return errors.New("server concurrency must be greater than 0")
+	if c.Server.MaxClients < 1 {
+		return errors.New("server max clients must be greater than 0")
 	}
 
 	return nil
