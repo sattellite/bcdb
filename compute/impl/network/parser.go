@@ -11,6 +11,7 @@ import (
 var ErrInvalidQuery = errors.New("invalid query")
 
 func (n *Network) Parse(input string) (*query.Query, error) {
+	input = strings.Trim(input, "\n")
 	parts := strings.Split(input, " ")
 	if len(parts) < 2 {
 		return nil, ErrInvalidQuery
