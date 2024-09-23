@@ -128,14 +128,12 @@ func (m *Memory) Done() <-chan struct{} {
 }
 
 func (m *Memory) Close(_ context.Context) {
-	m.logger.Info("closing")
-	select {
-	case _, ok := <-m.done:
-		if ok {
-			m.done <- struct{}{}
-			close(m.done)
+	defer func() {
+		if r := recover(); r != nil {
+			m.logger.Warn("catch panic", slog.Any("error", r))
 		}
-	default:
-		m.logger.Warn("already closed")
-	}
+	}()
+	m.logger.Info("closing storage engine")
+	m.done <- struct{}{}
+	close(m.done)
 }
