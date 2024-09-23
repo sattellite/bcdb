@@ -39,7 +39,12 @@ func main() {
 		return
 	}
 	// create computer for user requests
-	comp := compute.New(eng)
+	comp, cErr := compute.New(eng, cfg)
+	if cErr != nil {
+		log.Error("failed to create compute", slog.Any("error", cErr))
+		cancel()
+		return
+	}
 	go comp.Run(ctx)
 
 	// wait for signals

@@ -12,13 +12,13 @@ import (
 	"github.com/sattellite/bcdb/storage"
 )
 
-func New(logger *slog.Logger, engine storage.Engine) *REPL {
+func New(logger *slog.Logger, engine storage.Engine) (*REPL, error) {
 	return &REPL{
 		logger: logger.With("module", "repl"),
 		engine: engine,
 		in:     make(chan string),
 		out:    log.New(os.Stdout, "", 0).Writer(),
-	}
+	}, nil
 }
 
 type REPL struct {

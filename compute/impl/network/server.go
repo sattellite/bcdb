@@ -8,24 +8,18 @@ import (
 	"log/slog"
 	"net"
 
-	"github.com/sattellite/bcdb/config"
-
-	"github.com/sattellite/bcdb/compute/query"
 	"github.com/sattellite/bcdb/compute/result"
-
+	"github.com/sattellite/bcdb/config"
 	"github.com/sattellite/bcdb/storage"
 )
 
-//type Computer interface {
-//	Run(ctx context.Context)
-//	Parse(input string) (*query.Query, error)
-//	Handle(ctx context.Context, q query.Query) (result.Result, error)
-//	Print(r result.Result) error
-//}
-
-func New(logger *slog.Logger, engine storage.Engine, cfg config.Config) (*Network, error) {
-	if logger != nil {
+func New(logger *slog.Logger, engine storage.Engine, cfg *config.Config) (*Network, error) {
+	if logger == nil {
 		return nil, errors.New("logger is required")
+	}
+
+	if cfg == nil {
+		return nil, errors.New("config is required")
 	}
 
 	listener, err := net.Listen("tcp", net.JoinHostPort(cfg.Server.Address, cfg.Server.Port))
@@ -79,7 +73,7 @@ func (n *Network) Run(ctx context.Context) {
 func (n *Network) handleClient(ctx context.Context, c net.Conn) {
 	defer func() {
 		if msg := recover(); msg != nil {
-			n.logger.Error("panic occured", slog.Any("panic", msg))
+			n.logger.Error("panic occurred", slog.Any("panic", msg))
 		}
 
 		if err := c.Close(); err != nil {
@@ -132,15 +126,4 @@ func (n *Network) handleClient(ctx context.Context, c net.Conn) {
 			break
 		}
 	}
-}
-
-func (n *Network) Parse(input string) (*query.Query, error) {
-	return nil, nil
-}
-
-func (n *Network) Handle(ctx context.Context, q query.Query) (result.Result, error) {
-	return result.Result{}, nil
-}
-func (n *Network) Print(w io.Writer, r result.Result) error {
-	return nil
 }
