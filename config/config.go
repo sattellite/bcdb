@@ -55,8 +55,7 @@ func Load() (*Config, error) {
 	files = slices.Compact(files)
 
 	loader := aconfig.LoaderFor(&c, aconfig.Config{
-		SkipFlags: true,
-		Files:     files,
+		Files: files,
 	})
 
 	cfgErr := loader.Load()
