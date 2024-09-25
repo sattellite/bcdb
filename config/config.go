@@ -14,11 +14,10 @@ import (
 const project = "bcdb"
 
 type Config struct {
-	Debug bool `default:"false"`
+	Debug  bool `default:"false" usage:"Enable debug prints"`
+	Client bool `default:"false" usage:"Run as client"`
 
-	Mode string `default:"server" validate:"required,oneof=server client"`
-
-	Server Server
+	Server Server `usage:"Server configuration"`
 }
 type Server struct {
 	Address    string `default:"127.0.0.1" validate:"omitempty,ip"`
