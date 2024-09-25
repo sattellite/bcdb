@@ -32,6 +32,19 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
+	// wait for signals
+	wait := make(chan os.Signal, 1)
+	signal.Notify(
+		wait,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+		syscall.SIGHUP)
+
+	server(ctx, cancel, log, cfg, wait)
+}
+
+func server(ctx context.Context, cancel context.CancelFunc, log *slog.Logger, cfg *config.Config, wait chan os.Signal) {
 	// create storage engine
 	eng, engineErr := storage.NewEngine(ctx, storage.EngineTypeMemory)
 	if engineErr != nil {
@@ -47,15 +60,6 @@ func main() {
 		return
 	}
 	go comp.Run(ctx)
-
-	// wait for signals
-	wait := make(chan os.Signal, 1)
-	signal.Notify(
-		wait,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
-		syscall.SIGHUP)
 
 	<-wait
 	// send cancel signal
