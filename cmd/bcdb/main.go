@@ -7,8 +7,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/sattellite/bcdb/compute"
+	"github.com/davecgh/go-spew/spew"
 
+	"github.com/sattellite/bcdb/client"
+	"github.com/sattellite/bcdb/compute"
 	"github.com/sattellite/bcdb/config"
 	"github.com/sattellite/bcdb/logger"
 	"github.com/sattellite/bcdb/storage"
@@ -41,10 +43,15 @@ func main() {
 		syscall.SIGQUIT,
 		syscall.SIGHUP)
 
-	server(ctx, cancel, log, cfg, wait)
+	if cfg.Client {
+		startClient(ctx, cancel, log, cfg, wait)
+		return
+	}
+
+	startServer(ctx, cancel, log, cfg, wait)
 }
 
-func server(ctx context.Context, cancel context.CancelFunc, log *slog.Logger, cfg *config.Config, wait chan os.Signal) {
+func startServer(ctx context.Context, cancel context.CancelFunc, log *slog.Logger, cfg *config.Config, wait chan os.Signal) {
 	// create storage engine
 	eng, engineErr := storage.NewEngine(ctx, storage.EngineTypeMemory)
 	if engineErr != nil {
@@ -66,4 +73,25 @@ func server(ctx context.Context, cancel context.CancelFunc, log *slog.Logger, cf
 	cancel()
 	log.Info("stopping bcdb")
 	<-eng.Done()
+}
+
+func startClient(ctx context.Context, cancel context.CancelFunc, log *slog.Logger, cfg *config.Config, wait chan os.Signal) {
+	// create client for user requests
+	cl, clErr := client.New(cfg)
+	if clErr != nil {
+		log.Error("failed to create client", slog.Any("error", clErr))
+		cancel()
+		os.Exit(1)
+	}
+
+	go cl.Run(ctx)
+
+	select {
+	case <-wait:
+		spew.Dump("wait")
+	case <-cl.Done():
+		spew.Dump("cl.Done")
+	}
+	cancel()
+	log.Info("stopping bcdb")
 }
