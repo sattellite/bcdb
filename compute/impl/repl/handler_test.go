@@ -29,7 +29,7 @@ func TestHandle(t *testing.T) {
 			setupMock: func(m *storage.Engine) {
 				m.On("Set", mock.Anything, "key", "value").Return(nil)
 			},
-			expectedRes: result.Result{Value: `saved key "key"`},
+			expectedRes: result.Result{Value: `success`},
 			expectError: false,
 		},
 		{
@@ -38,7 +38,7 @@ func TestHandle(t *testing.T) {
 			setupMock: func(m *storage.Engine) {
 				m.On("Get", mock.Anything, "key").Return("value", nil)
 			},
-			expectedRes: result.Result{Value: "value: value"},
+			expectedRes: result.Result{Value: "value"},
 			expectError: false,
 		},
 		{
@@ -47,7 +47,7 @@ func TestHandle(t *testing.T) {
 			setupMock: func(m *storage.Engine) {
 				m.On("Del", mock.Anything, "key").Return(nil)
 			},
-			expectedRes: result.Result{Value: `deleted key "key"`},
+			expectedRes: result.Result{Value: `success`},
 			expectError: false,
 		},
 		{
@@ -92,11 +92,11 @@ func TestHandle(t *testing.T) {
 			tt.setupMock(mockEngine)
 			r := &REPL{engine: mockEngine}
 
-			res, err := r.Handle(context.Background(), *tt.query)
+			res := r.Handle(context.Background(), *tt.query)
 			if tt.expectError {
-				require.Error(t, err)
+				require.Error(t, res.Error)
 			} else {
-				require.NoError(t, err)
+				require.NoError(t, res.Error)
 				assert.Equal(t, tt.expectedRes, res)
 			}
 			mockEngine.AssertExpectations(t)

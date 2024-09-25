@@ -143,14 +143,14 @@ func (n *Network) handleClient(ctx context.Context, c net.Conn) {
 		}
 
 		// handle client input
-		res, hErr := n.Handle(ctx, *q)
-		if hErr != nil {
+		res := n.Handle(ctx, *q)
+		if res.Error != nil {
 			n.logger.Error("failed to handle command",
-				slog.Any("error", hErr),
+				slog.Any("error", res.Error),
 				slog.String("client", clientID),
 				slog.String("request", reqID),
 			)
-			wErr := n.Print(c, result.Result{Value: hErr.Error()})
+			wErr := n.Print(c, res)
 			if wErr != nil {
 				n.logger.Error("failed send data to connection",
 					slog.Any("error", wErr),

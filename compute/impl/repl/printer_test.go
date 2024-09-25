@@ -18,7 +18,7 @@ func TestPrinter(t *testing.T) {
 		expectError bool
 		expectedOut string
 	}{
-		{"Print result successfully", &REPL{out: new(bytes.Buffer)}, result.Result{Value: "output"}, false, "< output\n"},
+		{"Print result successfully", &REPL{out: new(bytes.Buffer)}, result.Result{Value: "output"}, false, "< RES: output\n"},
 		{"Print result with prompt error", &REPL{out: &errorWriter{}}, result.Result{Value: "output"}, true, ""},
 		{"Prompt successfully", &REPL{out: new(bytes.Buffer)}, result.Result{}, false, "> "},
 		{"Prompt with error", &REPL{out: &errorWriter{}}, result.Result{}, true, ""},

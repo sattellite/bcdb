@@ -16,7 +16,7 @@ import (
 type Computer interface {
 	Run(ctx context.Context)
 	Parse(input string) (*query.Query, error)
-	Handle(ctx context.Context, q query.Query) (result.Result, error)
+	Handle(ctx context.Context, q query.Query) result.Result
 	Print(w io.Writer, r result.Result) error
 }
 

@@ -48,10 +48,10 @@ func (r *REPL) Run(ctx context.Context) {
 			continue
 		}
 		// handle user input
-		res, hErr := r.Handle(ctx, *q)
-		if hErr != nil {
-			r.logger.Error("failed to handle command", slog.Any("error", hErr))
-			_ = r.Print(r.out, result.Result{Value: hErr.Error()})
+		res := r.Handle(ctx, *q)
+		if res.Error != nil {
+			r.logger.Error("failed to handle command", slog.Any("error", res.Error))
+			_ = r.Print(r.out, res)
 			_ = r.prompt(r.out, prefixIn)
 			continue
 		}
