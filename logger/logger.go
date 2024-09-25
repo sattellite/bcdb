@@ -50,7 +50,12 @@ func WithConfig(c *config.Config) *slog.Logger {
 		opts.Level = slog.LevelDebug
 	}
 
-	return slog.New(slog.NewTextHandler(os.Stdout, opts))
+	var mode string
+	if c != nil {
+		mode = c.Mode
+	}
+
+	return slog.New(slog.NewTextHandler(os.Stdout, opts)).With("mode", mode)
 }
 
 func WithScope(scope string) *slog.Logger {
