@@ -18,7 +18,7 @@ func TestPrinter(t *testing.T) {
 		expectError bool
 		expectedOut string
 	}{
-		{"Print result successfully", &REPL{out: new(bytes.Buffer)}, result.Result{Value: "output"}, false, "< output\n"},
+		{"Print result successfully", &REPL{out: new(bytes.Buffer)}, result.Result{Value: "output"}, false, "< RES: output\n"},
 		{"Print result with prompt error", &REPL{out: &errorWriter{}}, result.Result{Value: "output"}, true, ""},
 		{"Prompt successfully", &REPL{out: new(bytes.Buffer)}, result.Result{}, false, "> "},
 		{"Prompt with error", &REPL{out: &errorWriter{}}, result.Result{}, true, ""},
@@ -28,9 +28,9 @@ func TestPrinter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var err error
 			if tt.name == "Prompt successfully" || tt.name == "Prompt with error" {
-				err = tt.repl.prompt(prefixIn)
+				err = tt.repl.prompt(tt.repl.out, prefixIn)
 			} else {
-				err = tt.repl.Print(tt.res)
+				err = tt.repl.Print(tt.repl.out, tt.res)
 			}
 			if tt.expectError {
 				require.Error(t, err)
@@ -57,7 +57,7 @@ func TestPrompt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.repl.prompt(tt.prefix)
+			err := tt.repl.prompt(tt.repl.out, tt.prefix)
 			if tt.expectError {
 				require.Error(t, err)
 			} else {

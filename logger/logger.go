@@ -50,7 +50,12 @@ func WithConfig(c *config.Config) *slog.Logger {
 		opts.Level = slog.LevelDebug
 	}
 
-	return slog.New(slog.NewTextHandler(os.Stdout, opts))
+	mode := "server"
+	if c.Client {
+		mode = "client"
+	}
+
+	return slog.New(slog.NewTextHandler(os.Stdout, opts)).With("mode", mode)
 }
 
 func WithScope(scope string) *slog.Logger {

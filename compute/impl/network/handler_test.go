@@ -1,4 +1,4 @@
-package repl
+package network
 
 import (
 	"context"
@@ -90,7 +90,7 @@ func TestHandle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockEngine := storage.NewEngine(t)
 			tt.setupMock(mockEngine)
-			r := &REPL{engine: mockEngine}
+			r := &Network{engine: mockEngine}
 
 			res := r.Handle(context.Background(), *tt.query)
 			if tt.expectError {

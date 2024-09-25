@@ -5,6 +5,8 @@ import (
 	"errors"
 	"log/slog"
 	"time"
+
+	"github.com/sattellite/bcdb/util"
 )
 
 var (
@@ -37,9 +39,14 @@ type Memory struct {
 
 func (m *Memory) Set(ctx context.Context, key string, value any) (err error) {
 	defer func(start time.Time) {
-		err = m.deferredLog("set", key, start, err)
+		err = m.deferredLog(ctx, "set", key, start, err)
 	}(time.Now())
-	m.logger.Debug("set", slog.String("key", key), slog.Any("value", value))
+	m.logger.Debug("set",
+		slog.String("key", key),
+		slog.Any("value", value),
+		slog.String("client", util.GetContextClientID(ctx)),
+		slog.String("request", util.GetContextRequestID(ctx)),
+	)
 
 	select {
 	case <-ctx.Done():
@@ -60,8 +67,13 @@ func (m *Memory) set(key string, value any) error {
 
 func (m *Memory) Get(ctx context.Context, key string) (result any, err error) {
 	defer func(start time.Time) {
-		err = m.deferredLog("get", key, start, err)
+		err = m.deferredLog(ctx, "get", key, start, err)
 	}(time.Now())
+	m.logger.Debug("get",
+		slog.String("key", key),
+		slog.String("client", util.GetContextClientID(ctx)),
+		slog.String("request", util.GetContextRequestID(ctx)),
+	)
 
 	select {
 	case <-ctx.Done():
@@ -86,8 +98,13 @@ func (m *Memory) get(key string) (any, error) {
 
 func (m *Memory) Del(ctx context.Context, key string) (err error) {
 	defer func(start time.Time) {
-		err = m.deferredLog("del", key, start, err)
+		err = m.deferredLog(ctx, "del", key, start, err)
 	}(time.Now())
+	m.logger.Debug("del",
+		slog.String("key", key),
+		slog.String("client", util.GetContextClientID(ctx)),
+		slog.String("request", util.GetContextRequestID(ctx)),
+	)
 
 	select {
 	case <-ctx.Done():
@@ -110,16 +127,33 @@ func (m *Memory) del(key string) error {
 	return nil
 }
 
-func (m *Memory) deferredLog(method, key string, start time.Time, err error) error {
+func (m *Memory) deferredLog(ctx context.Context, method, key string, start time.Time, err error) error {
 	if rErr := recover(); rErr != nil {
-		m.logger.Error(method, slog.String("key", key), slog.Any("error", rErr), slog.Duration("elapsed", time.Since(start)))
+		m.logger.Error(method,
+			slog.String("key", key),
+			slog.Any("error", rErr),
+			slog.Duration("elapsed", time.Since(start)),
+			slog.String("client", util.GetContextClientID(ctx)),
+			slog.String("request", util.GetContextRequestID(ctx)),
+		)
 		return ErrInternal
 	}
 	if err != nil {
-		m.logger.Error(method, slog.String("key", key), slog.Any("error", err), slog.Duration("elapsed", time.Since(start)))
+		m.logger.Error(method,
+			slog.String("key", key),
+			slog.Any("error", err),
+			slog.Duration("elapsed", time.Since(start)),
+			slog.String("client", util.GetContextClientID(ctx)),
+			slog.String("request", util.GetContextRequestID(ctx)),
+		)
 		return err
 	}
-	m.logger.Debug(method, slog.String("key", key), slog.Duration("elapsed", time.Since(start)))
+	m.logger.Debug(method,
+		slog.String("key", key),
+		slog.Duration("elapsed", time.Since(start)),
+		slog.String("client", util.GetContextClientID(ctx)),
+		slog.String("request", util.GetContextRequestID(ctx)),
+	)
 	return nil
 }
 
@@ -128,14 +162,12 @@ func (m *Memory) Done() <-chan struct{} {
 }
 
 func (m *Memory) Close(_ context.Context) {
-	m.logger.Info("closing")
-	select {
-	case _, ok := <-m.done:
-		if ok {
-			m.done <- struct{}{}
-			close(m.done)
+	defer func() {
+		if r := recover(); r != nil {
+			m.logger.Warn("catch panic", slog.Any("error", r))
 		}
-	default:
-		m.logger.Warn("already closed")
-	}
+	}()
+	m.logger.Info("closing storage engine")
+	m.done <- struct{}{}
+	close(m.done)
 }

@@ -1,18 +1,28 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 
 	"github.com/cristalhq/aconfig"
+	"github.com/go-playground/validator/v10"
 )
 
 const project = "bcdb"
 
 type Config struct {
-	Debug bool
+	Debug  bool `default:"false" usage:"Enable debug prints"`
+	Client bool `default:"false" usage:"Run as client"`
+
+	Server Server `usage:"Server configuration"`
+}
+type Server struct {
+	Address    string `default:"127.0.0.1" validate:"omitempty,ip"`
+	Port       int    `default:"8080" validate:"required,numeric,gt=0,lt=65536"`
+	MaxClients int    `default:"10" validate:"required,gt=0"`
 }
 
 func Load() (*Config, error) {
@@ -47,8 +57,7 @@ func Load() (*Config, error) {
 	files = slices.Compact(files)
 
 	loader := aconfig.LoaderFor(&c, aconfig.Config{
-		SkipFlags: true,
-		Files:     files,
+		Files: files,
 	})
 
 	cfgErr := loader.Load()
@@ -56,5 +65,19 @@ func Load() (*Config, error) {
 		return nil, cfgErr
 	}
 
-	return &c, nil
+	return &c, c.validate()
+}
+
+func (c *Config) validate() error {
+	validate := validator.New()
+	vErr := validate.Struct(c)
+	if vErr != nil {
+		var errs validator.ValidationErrors
+		if errors.As(vErr, &errs) {
+			return errs
+		}
+		return vErr
+	}
+
+	return nil
 }
