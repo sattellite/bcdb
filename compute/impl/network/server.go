@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net"
+	"strconv"
 
 	"github.com/sattellite/bcdb/util"
 
@@ -24,7 +25,7 @@ func New(logger *slog.Logger, engine storage.Engine, cfg *config.Config) (*Netwo
 		return nil, errors.New("config is required")
 	}
 
-	listener, err := net.Listen("tcp", net.JoinHostPort(cfg.Server.Address, cfg.Server.Port))
+	listener, err := net.Listen("tcp", net.JoinHostPort(cfg.Server.Address, strconv.Itoa(cfg.Server.Port)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen: %w", err)
 	}

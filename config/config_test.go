@@ -15,13 +15,10 @@ func TestValidateConfig(t *testing.T) {
 		{
 			name: "Valid config",
 			config: Config{
-				Server: struct {
-					Address    string `default:"127.0.0.1"`
-					Port       string `default:"8080"`
-					MaxClients int    `default:"10"`
-				}{
+				Mode: "server",
+				Server: Server{
 					Address:    "127.0.0.1",
-					Port:       "8080",
+					Port:       8080,
 					MaxClients: 10,
 				},
 			},
@@ -30,13 +27,10 @@ func TestValidateConfig(t *testing.T) {
 		{
 			name: "Invalid port number",
 			config: Config{
-				Server: struct {
-					Address    string `default:"127.0.0.1"`
-					Port       string `default:"8080"`
-					MaxClients int    `default:"10"`
-				}{
+				Mode: "server",
+				Server: Server{
 					Address:    "127.0.0.1",
-					Port:       "invalid",
+					Port:       -1,
 					MaxClients: 10,
 				},
 			},
@@ -45,13 +39,10 @@ func TestValidateConfig(t *testing.T) {
 		{
 			name: "Port out of range",
 			config: Config{
-				Server: struct {
-					Address    string `default:"127.0.0.1"`
-					Port       string `default:"8080"`
-					MaxClients int    `default:"10"`
-				}{
+				Mode: "server",
+				Server: Server{
 					Address:    "127.0.0.1",
-					Port:       "70000",
+					Port:       70000,
 					MaxClients: 10,
 				},
 			},
@@ -60,16 +51,25 @@ func TestValidateConfig(t *testing.T) {
 		{
 			name: "Max clients less than 1",
 			config: Config{
-				Server: struct {
-					Address    string `default:"127.0.0.1"`
-					Port       string `default:"8080"`
-					MaxClients int    `default:"10"`
-				}{
+				Mode: "server",
+				Server: Server{
 					Address:    "127.0.0.1",
-					Port:       "8080",
+					Port:       8080,
 					MaxClients: 0,
 				},
 			},
+			expectedErr: true,
+		},
+		{
+			name: "Wrong mode",
+			config: Config{
+				Mode: "ololo",
+			},
+			expectedErr: true,
+		},
+		{
+			name:        "No mode",
+			config:      Config{},
 			expectedErr: true,
 		},
 	}

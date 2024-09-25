@@ -6,21 +6,24 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
-	"strconv"
 
 	"github.com/cristalhq/aconfig"
+	"github.com/go-playground/validator/v10"
 )
 
 const project = "bcdb"
 
 type Config struct {
-	Debug bool
+	Debug bool `default:"false"`
 
-	Server struct {
-		Address    string `default:"127.0.0.1"`
-		Port       string `default:"8080"`
-		MaxClients int    `default:"10"`
-	}
+	Mode string `default:"server" validate:"required,oneof=server client"`
+
+	Server Server
+}
+type Server struct {
+	Address    string `default:"127.0.0.1" validate:"omitempty,ip"`
+	Port       int    `default:"8080" validate:"required,numeric,gt=0,lt=65536"`
+	MaxClients int    `default:"10" validate:"required,gt=0"`
 }
 
 func Load() (*Config, error) {
@@ -67,20 +70,14 @@ func Load() (*Config, error) {
 }
 
 func (c *Config) validate() error {
-	if c.Server.Port == "" {
-		return errors.New("server port is required")
-	} else {
-		port, err := strconv.ParseInt(c.Server.Port, 10, 64)
-		if err != nil {
-			return errors.New("server port must be a number")
+	validate := validator.New()
+	vErr := validate.Struct(c)
+	if vErr != nil {
+		var errs validator.ValidationErrors
+		if errors.As(vErr, &errs) {
+			return errs
 		}
-		if port < 1 || port > 65535 {
-			return errors.New("server port must be between 1 and 65535")
-		}
-	}
-
-	if c.Server.MaxClients < 1 {
-		return errors.New("server max clients must be greater than 0")
+		return vErr
 	}
 
 	return nil
