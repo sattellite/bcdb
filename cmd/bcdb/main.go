@@ -21,6 +21,7 @@ func main() {
 	cfg, cfgErr := config.Load()
 	if cfgErr != nil {
 		log.Error("failed to load config", slog.Any("error", cfgErr))
+		os.Exit(1)
 	}
 
 	// set logger config
