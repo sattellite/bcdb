@@ -65,12 +65,12 @@ func (n *Network) Run(ctx context.Context) {
 
 		clientID := util.ClientID(conn.RemoteAddr().String())
 		n.logger.Debug("accepted connection", slog.String("client", clientID))
-		ctx = util.SetContextClientID(ctx, clientID)
+		rctx := util.SetContextClientID(context.Background(), clientID)
 
 		// take a place in queue
 		n.limit <- struct{}{}
 		go func(c net.Conn) {
-			n.handleClient(ctx, c)
+			n.handleClient(rctx, c)
 			// clear a place in queue
 			<-n.limit
 		}(conn)
@@ -79,6 +79,10 @@ func (n *Network) Run(ctx context.Context) {
 }
 
 func (n *Network) handleClient(ctx context.Context, c net.Conn) {
+	defer func() {
+		_ = c.Close()
+	}()
+
 	clientID := util.GetContextClientID(ctx)
 	defer func() {
 		if msg := recover(); msg != nil {
@@ -101,7 +105,15 @@ func (n *Network) handleClient(ctx context.Context, c net.Conn) {
 	request := make([]byte, 1024)
 	for {
 		count, rErr := c.Read(request)
-		if rErr != nil && errors.Is(rErr, io.EOF) {
+		if rErr != nil {
+			if errors.Is(rErr, io.EOF) {
+				n.logger.Error("connection closed",
+					slog.Any("error", rErr),
+					slog.String("address", c.RemoteAddr().String()),
+					slog.String("client", clientID),
+				)
+				break
+			}
 			n.logger.Error("failed read request",
 				slog.Any("error", rErr),
 				slog.String("address", c.RemoteAddr().String()),
